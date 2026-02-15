@@ -17,7 +17,7 @@ public class MLClient {
 
     public String generateResumeText(String prompt) {
 
-        String url = "http://localhost:8000/generate-resume";
+        String url = "http://localhost:8000/generate-resume-legacy";
 
         Map<String, String> request = Map.of("prompt", prompt);
 
