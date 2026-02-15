@@ -1,1 +1,18 @@
 /Major_Project_document.docx
+
+# Python
+ml-service/venv/
+ml-service/__pycache__/
+ml-service/**/__pycache__/
+ml-service/models/*.pkl
+ml-service/.env
+
+# Java
+University/target/
+
+# Node
+frontend/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
