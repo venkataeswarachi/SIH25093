@@ -8,89 +8,128 @@ import com.vvit.University.models.Academics;
 import com.vvit.University.models.Achievements;
 import com.vvit.University.models.Projects;
 import com.vvit.University.models.Students;
-import com.vvit.University.payload.AchievementDTO;
-import com.vvit.University.payload.ResumeDTO;
+import com.vvit.University.payload.*;
 import com.vvit.University.repository.AcademicRepository;
 import com.vvit.University.repository.AchievementRepository;
 import com.vvit.University.repository.ProjectRepository;
 import com.vvit.University.repository.StudentRepository;
 import com.vvit.University.services.MLService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 @Service
+
 public class MlServiceImpl implements MLService {
 
     @Autowired
     private StudentRepository studentRepository;
+
     @Autowired
     private AcademicRepository academicRepository;
+
     @Autowired
     private AchievementRepository achievementRepository;
-    @Autowired
-    private MLClient mlClient;
-    @Autowired
-    private ResumeTextCleaner cleaner;
+
     @Autowired
     private ProjectRepository projectRepository;
+
+    @Autowired
+    private MLClient mlClient;
+
     @Override
     public Map<String, Object> generateResumeFromML(String email) {
 
-        // 1️⃣ Build DTO from DB
+        // 1. Build DTO from DB
         ResumeDTO dto = buildResumeDTO(email);
 
-        // 2️⃣ Generate ONLY summary using ML
-        String prompt = generateSummaryPrompt(dto);
+        // 2. Convert DTO → ML Request
+        ResumeMLRequest mlRequest = buildMLRequest(dto);
 
-        String rawSummary = mlClient.generateResumeText(prompt);
-        if (rawSummary == null || rawSummary.isBlank()) {
-            throw new RuntimeException("ML returned empty summary");
-        }
+        // 3. Call ML
+        Map<String, Object> mlResponse =
+                mlClient.generateResumeFromDTO(mlRequest);
 
-        String summary = cleaner.clean(rawSummary);
+        // 4. Extract summary
+        String summary = mlResponse.get("summary").toString();
 
-        // 3️⃣ Build STRUCTURED resume (NO ML here)
-        Map<String, Object> response = new java.util.LinkedHashMap<>();
-        response.put("name",dto.getFirstname()+" "+dto.getLastname());
-        response.put("email",dto.getEmail());
-        response.put("mobile",dto.getMobile());
+        // 5. Return structured response
+        Map<String, Object> response = new LinkedHashMap<>();
+
+        response.put("student", mlRequest.getStudent());
+        response.put("academics", mlRequest.getAcademics());
+        response.put("projects", mlRequest.getProjects());
+        response.put("achievements", mlRequest.getAchievements());
         response.put("summary", summary);
-        response.put("education",
-                dto.getCourse() + " in " + dto.getBranch() +
-                        ", Year " + dto.getYear());
-
-        response.put("achievements",
-                dto.getAchievementDTOS() == null
-                        ? List.of()
-                        : dto.getAchievementDTOS()
-                        .stream()
-                        .map(AchievementDTO::getTitle)
-                        .toList()
-        );
-        response.put("projects",
-                dto.getProjects() == null
-                ? List.of()
-                :dto.getProjects()
-                        .stream()
-                        .map(Projects :: getTitle)
-                .toList());
-        List<String> links = new java.util.ArrayList<>();
-        if (dto.getGitlink() != null && !dto.getGitlink().isEmpty()) {
-            links.add(dto.getGitlink());
-        }
-        if (dto.getPortfolio() != null && !dto.getPortfolio().isEmpty()) {
-            links.add(dto.getPortfolio());
-        }
-
-        response.put("links", links);
 
         return response;
     }
 
-    // ---------------- HELPERS ----------------
+    private ResumeMLRequest buildMLRequest(ResumeDTO dto) {
+
+        ResumeMLRequest request = new ResumeMLRequest();
+
+        // student
+        StudentInfo student = new StudentInfo();
+        student.setName(dto.getFirstname() + " " + dto.getLastname());
+        student.setEmail(dto.getEmail());
+        student.setMobile(dto.getMobile());
+        student.setSkills(dto.getSkills());
+        student.setGitlink(dto.getGitlink());
+        student.setPortfolio(dto.getPortfolio());
+
+        request.setStudent(student);
+
+        // academics
+        AcademicsInfo academics = new AcademicsInfo();
+        academics.setCourse(dto.getCourse());
+        academics.setBranch(dto.getBranch());
+        academics.setYear(dto.getYear());
+
+        request.setAcademics(academics);
+
+        // projects
+        if (dto.getProjects() != null) {
+            List<ProjectInfo> projects = dto.getProjects().stream().map(p -> {
+                ProjectInfo pi = new ProjectInfo();
+                pi.setTitle(p.getTitle());
+                pi.setDescription(p.getDescription());
+                pi.setRole(p.getRole());
+                pi.setGitlink(p.getGitlink());
+                pi.setDeploylink(p.getDeploylink());
+                return pi;
+            }).toList();
+
+            request.setProjects(projects);
+        }
+
+        // achievements
+        if (dto.getAchievementDTOS() != null) {
+            List<AchievementInfo> achievements = dto.getAchievementDTOS()
+                    .stream()
+                    .map(a -> {
+                        AchievementInfo ai = new AchievementInfo();
+                        ai.setTitle(a.getTitle());
+                        ai.setCategory(a.getCategory());
+                        ai.setDescription(a.getDescription());
+                        return ai;
+                    }).toList();
+
+            request.setAchievements(achievements);
+        }
+
+        request.setTarget_role("Full Stack Developer");
+        request.setTemplate("professional");
+
+        return request;
+    }
 
     private ResumeDTO buildResumeDTO(String email) {
 
@@ -131,38 +170,5 @@ public class MlServiceImpl implements MLService {
         }
 
         return dto;
-    }
-
-    private String generateSummaryPrompt(ResumeDTO dto) {
-
-        StringBuilder details = new StringBuilder();
-
-        details.append(dto.getCourse())
-                .append(" ")
-                .append(dto.getBranch())
-                .append(" student, year ")
-                .append(dto.getYear())
-                .append(". ");
-
-        if (dto.getAchievementDTOS() != null && !dto.getAchievementDTOS().isEmpty()) {
-            details.append("Achievements include ");
-            details.append(
-                    dto.getAchievementDTOS().stream()
-                            .limit(3)
-                            .map(AchievementDTO::getTitle)
-                            .collect(Collectors.joining(", "))
-            ).append(". ");
-        }
-
-        if (dto.getGitlink() != null) {
-            details.append("GitHub profile available. ");
-        }
-
-        if (dto.getPortfolio() != null) {
-            details.append("Portfolio available. ");
-        }
-
-        // 🔥 T5-friendly task prefix
-        return "resume_summary: " + details.toString();
     }
 }

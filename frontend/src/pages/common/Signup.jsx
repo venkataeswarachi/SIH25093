@@ -71,6 +71,7 @@ const Signup = () => {
                         >
                             <option value="STUDENT">Student</option>
                             <option value="FACULTY">Faculty</option>
+                            <option value="ADMIN">Admin</option>
                         </select>
                     </div>
                     <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>

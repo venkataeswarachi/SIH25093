@@ -24,5 +24,8 @@ public interface AcademicRepository extends JpaRepository<Academics,Long> {
         @Param("section") String section,
         @Param("year") int year,
         @Param("semester") int semester);
+    @Query("SELECT COUNT(DISTINCT a.branch) FROM Academics a")
+    int countDistinctDepartments();
 
 }
+

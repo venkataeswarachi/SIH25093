@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/admin")
@@ -67,5 +70,14 @@ public class AdminController {
         @PostMapping("/enroll/subjects")
         public ResponseEntity<String> enrollsemSub(@RequestParam MultipartFile file){
                 return adminService.enrollSemSubjects(file);
+        }
+
+        @GetMapping("/details")
+        public ResponseEntity<Map> getDetails(){
+               Map<String,Integer> details = new HashMap<>();
+               details.put("students", adminService.NoOfStudents());
+               details.put("faculty", adminService.NoOfFaculty());
+               details.put("dept", adminService.NoOfDept());
+               return ResponseEntity.ok(details);
         }
 }

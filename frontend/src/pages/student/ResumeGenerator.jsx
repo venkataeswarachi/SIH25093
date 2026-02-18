@@ -4,35 +4,69 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 const ResumeGenerator = () => {
+
     const [resumeData, setResumeData] = useState(null);
     const [loading, setLoading] = useState(false);
+
     const resumeRef = useRef();
 
+    // Fetch resume from backend
     const fetchResume = async () => {
+
         setLoading(true);
+
         try {
-            // Updated to match your @PostMapping("/generate")
+
             const { data } = await api.post('/api/resume/generate');
+
+            console.log("Resume Data:", data);
+
             setResumeData(data);
-        } catch (e) {
-            console.error("Error generating resume:", e);
+
+        } catch (error) {
+
+            console.error("Error generating resume:", error);
+
         } finally {
+
             setLoading(false);
+
         }
+
     };
 
+
+    // Download PDF
     const handleDownloadPDF = async () => {
+
         const element = resumeRef.current;
-        const canvas = await html2canvas(element, { scale: 3, useCORS: true });
+
+        const canvas = await html2canvas(element, {
+            scale: 3,
+            useCORS: true
+        });
+
         const imgData = canvas.toDataURL('image/png');
+
         const pdf = new jsPDF('p', 'mm', 'a4');
+
         const pdfWidth = pdf.internal.pageSize.getWidth();
+
         const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`${resumeData.name.replace(/\s+/g, '_')}_Resume.pdf`);
+
+        const fileName =
+            resumeData.student.name.replace(/\s+/g, "_") + "_Resume.pdf";
+
+        pdf.save(fileName);
+
     };
 
+
+    // Styling
     const styles = {
+
         page: {
             width: '210mm',
             minHeight: '297mm',
@@ -45,9 +79,24 @@ const ResumeGenerator = () => {
             border: '1px solid #ddd',
             boxShadow: '0 0 10px rgba(0,0,0,0.1)'
         },
-        header: { textAlign: 'center', marginBottom: '15px' },
-        name: { fontSize: '22pt', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' },
-        contact: { fontSize: '10.5pt', margin: '3px 0' },
+
+        header: {
+            textAlign: 'center',
+            marginBottom: '15px'
+        },
+
+        name: {
+            fontSize: '22pt',
+            fontWeight: 'bold',
+            margin: '0',
+            textTransform: 'uppercase'
+        },
+
+        contact: {
+            fontSize: '10.5pt',
+            margin: '3px 0'
+        },
+
         sectionTitle: {
             fontSize: '12pt',
             fontWeight: 'bold',
@@ -56,88 +105,336 @@ const ResumeGenerator = () => {
             marginBottom: '8px',
             textTransform: 'uppercase'
         },
-        link: { color: '#000', textDecoration: 'none', fontWeight: 'bold' },
-        content: { fontSize: '11pt', marginBottom: '8px', textAlign: 'justify' },
-        list: { paddingLeft: '20px', marginBottom: '10px', fontSize: '11pt' }
+
+        content: {
+            fontSize: '11pt',
+            marginBottom: '8px',
+            textAlign: 'justify'
+        },
+
+        list: {
+            paddingLeft: '20px',
+            marginBottom: '10px',
+            fontSize: '11pt'
+        },
+
+        link: {
+            color: '#000',
+            textDecoration: 'none',
+            fontWeight: 'bold'
+        }
+
     };
 
+
     return (
-        <div style={{ padding: '20px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+
+        <div style={{
+            padding: '20px',
+            backgroundColor: '#f5f5f5',
+            minHeight: '100vh'
+        }}>
+
+
+            {/* Buttons */}
+
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+
                 {!resumeData ? (
-                    <button className="btn btn-primary" onClick={fetchResume} disabled={loading}>
-                        {loading ? 'Processing ML Summary...' : 'Generate Resume'}
+
+                    <button
+                        className="btn btn-primary"
+                        onClick={fetchResume}
+                        disabled={loading}
+                    >
+                        {loading ? "Generating Resume..." : "Generate Resume"}
+
                     </button>
+
                 ) : (
-                    <button className="btn btn-success" onClick={handleDownloadPDF}>
+
+                    <button
+                        className="btn btn-success"
+                        onClick={handleDownloadPDF}
+                    >
                         Download PDF
                     </button>
+
                 )}
+
             </div>
 
+
+            {/* Resume */}
+
             {resumeData && (
+
                 <div ref={resumeRef} style={styles.page}>
+
                     {/* Header */}
+
                     <div style={styles.header}>
-                        <h1 style={styles.name}>{resumeData.name}</h1>
+
+                        <h1 style={styles.name}>
+                            {resumeData.student.name}
+                        </h1>
+
                         <p style={styles.contact}>
-                            {resumeData.email} | {resumeData.mobile}
+                            {resumeData.student.email}
+                            {" | "}
+                            {resumeData.student.mobile}
                         </p>
+
+
+                        {/* Links */}
+
                         <div style={styles.contact}>
-                            {resumeData.links && resumeData.links.map((link, i) => (
-                                <span key={i}>
-                                    <a href={link} style={styles.link} target="_blank" rel="noreferrer">
-                                        {link.replace(/^https?:\/\//, '')}
+
+                            {resumeData.student.gitlink && (
+
+                                <>
+                                    <a
+                                        href={resumeData.student.gitlink}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        style={styles.link}
+                                    >
+                                        GitHub
                                     </a>
-                                    {i < resumeData.links.length - 1 && ' | '}
-                                </span>
-                            ))}
+                                </>
+
+                            )}
+
+                            {resumeData.student.portfolio && (
+
+                                <>
+                                    {" | "}
+                                    <a
+                                        href={resumeData.student.portfolio}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        style={styles.link}
+                                    >
+                                        Portfolio
+                                    </a>
+                                </>
+
+                            )}
+
                         </div>
+
                     </div>
 
-                    {/* Summary - Generated by ML */}
-                    <div style={styles.sectionTitle}>Professional Summary</div>
-                    <div style={styles.content}>{resumeData.summary}</div>
 
-                    {/* Education - Structured from Backend */}
-                    <div style={styles.sectionTitle}>Education</div>
+                    {/* Summary */}
+
+                    <div style={styles.sectionTitle}>
+                        Professional Summary
+                    </div>
+
                     <div style={styles.content}>
-                        <strong>{resumeData.education}</strong>
+                        {resumeData.summary}
                     </div>
 
-                    {/* Projects - NEW SECTION */}
-                    {resumeData.projects && resumeData.projects.length > 0 && (
+
+
+                    {/* Education */}
+
+                    <div style={styles.sectionTitle}>
+                        Education
+                    </div>
+
+                    <div style={styles.content}>
+
+                        <strong>
+                            {resumeData.academics.course}
+                            {" in "}
+                            {resumeData.academics.branch}
+                            {", Year "}
+                            {resumeData.academics.year}
+                        </strong>
+
+                    </div>
+
+
+
+                    {/* Skills */}
+
+                    {resumeData.student.skills?.length > 0 && (
+
                         <>
-                            <div style={styles.sectionTitle}>Projects</div>
-                            <ul style={styles.list}>
-                                {resumeData.projects.map((project, i) => (
-                                    <li key={i} style={{ marginBottom: '5px' }}>
-                                        <strong>{project}</strong>
-                                    </li>
-                                ))}
-                            </ul>
+
+                            <div style={styles.sectionTitle}>
+                                Skills
+                            </div>
+
+                            <div style={styles.content}>
+                                {resumeData.student.skills.join(", ")}
+                            </div>
+
                         </>
+
                     )}
+
+
+
+                    {/* Projects */}
+
+                    {resumeData.projects?.length > 0 && (
+
+                        <>
+
+                            <div style={styles.sectionTitle}>
+                                Projects
+                            </div>
+
+                            <ul style={styles.list}>
+
+                                {resumeData.projects.map((project, index) => (
+
+                                    <li key={index}>
+
+                                        <strong>
+                                            {project.title}
+                                        </strong>
+
+                                        {project.role &&
+                                            ` — ${project.role}`
+                                        }
+
+                                        {project.description && (
+
+                                            <div>
+                                                {project.description}
+                                            </div>
+
+                                        )}
+
+                                        {(project.gitlink ||
+                                            project.deploylink) && (
+
+                                                <div>
+
+                                                    {project.gitlink && (
+
+                                                        <a
+                                                            href={project.gitlink}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            GitHub
+                                                        </a>
+
+                                                    )}
+
+                                                    {project.gitlink &&
+                                                        project.deploylink &&
+                                                        " | "}
+
+                                                    {project.deploylink && (
+
+                                                        <a
+                                                            href={project.deploylink}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            Live Demo
+                                                        </a>
+
+                                                    )}
+
+                                                </div>
+
+                                            )}
+
+                                    </li>
+
+                                ))}
+
+                            </ul>
+
+                        </>
+
+                    )}
+
+
 
                     {/* Achievements */}
-                    {resumeData.achievements && resumeData.achievements.length > 0 && (
+                    {resumeData.achievements?.length > 0 && (
+
                         <>
-                            <div style={styles.sectionTitle}>Achievements</div>
+                            <div style={styles.sectionTitle}>
+                                Achievements
+                            </div>
+
                             <ul style={styles.list}>
-                                {resumeData.achievements.map((item, i) => (
-                                    <li key={i}>{item}</li>
+
+                                {resumeData.achievements.map((ach, index) => (
+
+                                    <li key={index} style={{ marginBottom: "8px" }}>
+
+                                        {/* Title and Category in one row */}
+                                        <div style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            fontWeight: "bold"
+                                        }}>
+
+                                            <span>{ach.title}</span>
+
+                                            <span style={{
+                                                fontStyle: "italic",
+                                                fontWeight: "normal"
+                                            }}>
+                                                {ach.category}
+                                            </span>
+
+                                        </div>
+
+                                        {/* Description */}
+                                        {ach.description && (
+                                            <div>
+                                                {ach.description}
+                                            </div>
+                                        )}
+
+                                    </li>
+
                                 ))}
+
                             </ul>
                         </>
                     )}
 
-                    <div style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '10px', textAlign: 'center' }}>
-                        <small style={{ color: '#999', fontStyle: 'italic' }}>End of Resume</small>
+
+
+
+                    {/* Footer */}
+
+                    <div style={{
+                        marginTop: '30px',
+                        borderTop: '1px solid #eee',
+                        paddingTop: '10px',
+                        textAlign: 'center'
+                    }}>
+
+                        <small style={{
+                            color: '#999',
+                            fontStyle: 'italic'
+                        }}>
+                            End of Resume
+                        </small>
+
                     </div>
+
                 </div>
+
             )}
+
         </div>
+
     );
+
 };
 
 export default ResumeGenerator;

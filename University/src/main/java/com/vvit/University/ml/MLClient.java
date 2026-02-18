@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
-
 @Component
 public class MLClient {
 
@@ -15,15 +14,24 @@ public class MLClient {
         this.restTemplate = restTemplate;
     }
 
-    public String generateResumeText(String prompt) {
+    public Map<String, Object> generateResumeFromDTO(Object requestDTO) {
 
-        String url = "http://localhost:8000/generate-resume-legacy";
+        String url = "http://localhost:8000/generate-resume";
 
-        Map<String, String> request = Map.of("prompt", prompt);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Object> entity =
+                new HttpEntity<>(requestDTO, headers);
 
         ResponseEntity<Map> response =
-                restTemplate.postForEntity(url, request, Map.class);
+                restTemplate.exchange(
+                        url,
+                        HttpMethod.POST,
+                        entity,
+                        Map.class
+                );
 
-        return response.getBody().get("resume_text").toString();
+        return response.getBody();
     }
 }

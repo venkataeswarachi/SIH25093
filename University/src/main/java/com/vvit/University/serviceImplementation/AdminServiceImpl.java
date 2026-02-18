@@ -577,6 +577,21 @@ public class AdminServiceImpl implements AdminService {
         }
     }
 
+    @Override
+    public int NoOfStudents() {
+        return studentRepository.findAll().size();
+    }
+
+    @Override
+    public int NoOfFaculty() {
+        return facultyRepository.findAll().size();
+    }
+
+    @Override
+    public int NoOfDept() {
+        return academicRepository.countDistinctDepartments();
+    }
+
 
 }
 

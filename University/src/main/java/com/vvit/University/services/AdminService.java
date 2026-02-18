@@ -22,4 +22,7 @@ public interface AdminService {
             String adminEmail
     ) throws IOException;
     public ResponseEntity<String > enrollSemSubjects(MultipartFile file);
+    int NoOfStudents();
+    int NoOfFaculty();
+    int NoOfDept();
 }
