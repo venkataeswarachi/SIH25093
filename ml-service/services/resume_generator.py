@@ -1,9 +1,10 @@
 """
-Resume Generator Orchestrator — coordinates all ML services to produce
-a complete AI-enhanced resume from structured student data.
+Resume Generator Orchestrator -- coordinates all ML services to produce
+a FAANG-grade AI-enhanced resume from structured student data.
 """
 
 import logging
+import re
 from services.summary_generator import generate_summary, enhance_project, enhance_achievement
 from services.skills_classifier import classify_skills
 from services.project_ranker import rank_projects
@@ -12,21 +13,46 @@ from services.ats_scorer import compute_ats_score
 
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Relevant coursework by branch (auto-populated for education section)
+# ---------------------------------------------------------------------------
+
+BRANCH_COURSEWORK = {
+    "computer science": [
+        "Data Structures & Algorithms", "Operating Systems", "Database Management Systems",
+        "Computer Networks", "Object-Oriented Programming", "Software Engineering",
+        "Compiler Design", "Machine Learning", "Artificial Intelligence",
+    ],
+    "cse": [
+        "Data Structures & Algorithms", "Operating Systems", "Database Management Systems",
+        "Computer Networks", "Object-Oriented Programming", "Software Engineering",
+        "Compiler Design", "Machine Learning", "Artificial Intelligence",
+    ],
+    "information technology": [
+        "Data Structures & Algorithms", "Database Systems", "Web Technologies",
+        "Computer Networks", "Software Engineering", "Information Security",
+        "Cloud Computing", "Operating Systems",
+    ],
+    "electronics": [
+        "Digital Electronics", "Microprocessors", "Signal Processing",
+        "Embedded Systems", "VLSI Design", "Communication Systems",
+        "Control Systems", "IoT",
+    ],
+    "electrical": [
+        "Circuit Theory", "Power Systems", "Control Systems",
+        "Electrical Machines", "Signal Processing", "Embedded Systems",
+    ],
+    "mechanical": [
+        "Thermodynamics", "Fluid Mechanics", "Machine Design",
+        "Manufacturing Processes", "CAD/CAM", "Robotics",
+    ],
+}
+
 
 def generate_resume(data: dict) -> dict:
     """
     Main entry point. Takes structured student data and returns
-    a fully AI-enhanced resume payload.
-
-    Input data schema:
-    {
-        "student": { "name", "email", "mobile", "skills": [], "gitlink", "portfolio" },
-        "academics": { "course", "branch", "year", "semester", "cgpa", "batch", "section" },
-        "projects": [{ "title", "description", "role", "gitlink", "deploylink" }],
-        "achievements": [{ "title", "category", "description" }],
-        "target_role": "Software Engineer Intern",
-        "template": "professional"
-    }
+    a fully AI-enhanced, FAANG-grade resume payload.
     """
     target_role = data.get("target_role", "")
     template = data.get("template", "professional")
@@ -42,7 +68,7 @@ def generate_resume(data: dict) -> dict:
     # 1. Classify skills (ML/rule-based)
     # -----------------------------------------------------------------------
     categorised_skills = classify_skills(skills_raw)
-    logger.info(f"Skills classified: {len(skills_raw)} → {len(categorised_skills)} categories")
+    logger.info(f"Skills classified: {len(skills_raw)} -> {len(categorised_skills)} categories")
 
     # -----------------------------------------------------------------------
     # 2. Rank projects by relevance (sentence-transformer)
@@ -98,7 +124,17 @@ def generate_resume(data: dict) -> dict:
     logger.info(f"ATS score: {ats_result['ats_score']}")
 
     # -----------------------------------------------------------------------
-    # 8. Assemble response
+    # 8. Extract relevant coursework
+    # -----------------------------------------------------------------------
+    coursework = _get_coursework(academics)
+
+    # -----------------------------------------------------------------------
+    # 9. Compute skill proficiency levels
+    # -----------------------------------------------------------------------
+    skill_levels = _estimate_proficiency(skills_raw, projects)
+
+    # -----------------------------------------------------------------------
+    # 10. Assemble response
     # -----------------------------------------------------------------------
     response = {
         "name": student.get("name", ""),
@@ -106,7 +142,9 @@ def generate_resume(data: dict) -> dict:
         "mobile": student.get("mobile"),
         "summary": summary,
         "education": _format_education(academics),
+        "coursework": coursework,
         "skills": categorised_skills,
+        "skill_levels": skill_levels,
         "projects": [
             {
                 "title": p.get("title", ""),
@@ -116,6 +154,7 @@ def generate_resume(data: dict) -> dict:
                 "gitlink": p.get("gitlink", ""),
                 "deploylink": p.get("deploylink", ""),
                 "relevance_score": p.get("relevance_score", 0),
+                "technologies": _extract_project_techs(p),
             }
             for p in ranked_projects
         ],
@@ -141,20 +180,31 @@ def generate_resume(data: dict) -> dict:
     return response
 
 
+# ---------------------------------------------------------------------------
+# Helper functions
+# ---------------------------------------------------------------------------
+
 def _format_education(academics: dict) -> str:
     course = academics.get("course", "")
     branch = academics.get("branch", "")
     year = academics.get("year", "")
     cgpa = academics.get("cgpa", "")
     batch = academics.get("batch", "")
+    semester = academics.get("semester", "")
 
     edu = f"{course} in {branch}" if course and branch else course or branch or "N/A"
-    if year:
-        edu += f", Year {year}"
+    parts = []
     if cgpa:
-        edu += f" | CGPA: {cgpa}"
+        parts.append(f"CGPA: {cgpa}/10")
+    if semester:
+        parts.append(f"Semester {semester}")
+    if year:
+        parts.append(f"Year {year}")
     if batch:
-        edu += f" (Batch {batch})"
+        parts.append(f"Batch {batch}")
+
+    if parts:
+        edu += " | " + " | ".join(parts)
     return edu
 
 
@@ -165,3 +215,49 @@ def _collect_links(student: dict) -> list[str]:
     if student.get("portfolio"):
         links.append(student["portfolio"])
     return links
+
+
+def _get_coursework(academics: dict) -> list[str]:
+    """Get relevant coursework based on branch."""
+    branch = (academics.get("branch", "") or "").lower()
+    for key, courses in BRANCH_COURSEWORK.items():
+        if key in branch:
+            return courses[:6]  # Return top 6 courses
+    return []
+
+
+def _extract_project_techs(project: dict) -> list[str]:
+    """Extract technology names from a project for display."""
+    from templates.prompts import _extract_techs
+    all_text = f"{project.get('title', '')} {project.get('description', '')} {project.get('role', '')}"
+    return _extract_techs(all_text)
+
+
+def _estimate_proficiency(skills: list[str], projects: list[dict]) -> dict[str, str]:
+    """
+    Estimate proficiency level for each skill based on how often
+    it appears in project descriptions.
+    """
+    if not skills:
+        return {}
+
+    # Count skill mentions in projects
+    project_text = " ".join(
+        f"{p.get('title', '')} {p.get('description', '')} {p.get('role', '')}"
+        for p in projects
+    ).lower()
+
+    levels = {}
+    for skill in skills:
+        skill_lower = skill.lower()
+        # Count occurrences in project text
+        count = len(re.findall(re.escape(skill_lower), project_text))
+
+        if count >= 3:
+            levels[skill] = "Advanced"
+        elif count >= 1:
+            levels[skill] = "Intermediate"
+        else:
+            levels[skill] = "Familiar"
+
+    return levels
