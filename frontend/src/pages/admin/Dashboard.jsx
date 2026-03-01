@@ -99,7 +99,7 @@ const AdminDashboard = () => {
         {
             title: 'Upload Users',
             desc: 'Manage accounts',
-            path: '/admin/users',
+            path: '/admin/upload',
             icon: '👥',
             color: 'var(--primary-light)'
         },
@@ -123,7 +123,7 @@ const AdminDashboard = () => {
         {
             title: 'Post Notice',
             desc: 'Broadcast updates',
-            path: '/admin/notices',
+            path: '/admin/notice',
             icon: '📢',
             color: 'var(--warning-bg)'
         }

@@ -152,9 +152,9 @@ const StudentAchievements = () => {
                                 <div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
                                         <span className="badge badge-info">{ach.category}</span>
-                                        <span style={{ fontSize: '0.75rem', color: ach.verified ? 'var(--success)' : 'var(--text-muted)' }}>
+                                        {/* <span style={{ fontSize: '0.75rem', color: ach.verified ? 'var(--success)' : 'var(--text-muted)' }}>
                                             {ach.verified ? '✓ VERIFIED' : 'PENDING'}
-                                        </span>
+                                        </span> */}
                                     </div>
                                     <h3 className="heading-md">{ach.title}</h3>
                                     <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
