@@ -1,0 +1,62 @@
+
+================================================================================
+ML SERVICE — COMPREHENSIVE TEST REPORT
+Generated: 2026-03-03 19:47:19
+================================================================================
+
+OVERALL STATISTICS
+--------------------------------------------------------------------------------
+Total Test Samples: 1500
+Overall Success Rate: 20.00%
+Test Models: 4 (Skills Classifier, Project Ranker, Achievement Scorer, ATS Scorer)
+
+MODEL PERFORMANCE METRICS
+--------------------------------------------------------------------------------
+
+Skills Classifier (TF-IDF + Random Forest)
+  Success Rate: 100.0%
+  Avg Execution Time: 0.0000s
+
+Project Ranker (Sentence Transformers)
+  Success Rate: 100.0%
+  Avg Execution Time: 0.0968s
+  Score Mean: 0.215
+  Score Range: 0.040 - 0.446
+
+Achievement Scorer (Keyword Heuristics)
+  Success Rate: 100.0%
+  Avg Execution Time: 0.0001s
+  Score Mean: 0.936
+  Score Range: 0.600 - 1.000
+
+ATS Scorer (TF-IDF + Keyword Matching)
+  Success Rate: 0.0%
+
+DETAILED STATISTICS BY MODEL
+--------------------------------------------------------------------------------
+
+[SKILLS CLASSIFIER]
+  Coverage Rate: 100.0%
+  Categories Used: 5
+  Categorized Skills: 4942
+
+[PROJECT RANKER]
+  Total Projects: 1230
+  Score Range: 0.000 - 0.660
+
+[ACHIEVEMENT SCORER]
+  Total Achievements: 2188
+  High Impact: 2077
+  Medium Impact: 111
+  Low Impact: 0
+
+[ATS SCORER]
+  Score Range: 100.00 - 0.00
+  Excellent (>80): 0
+  Good (60-80): 0
+  Average (40-60): 0
+  Poor (<40): 0
+
+================================================================================
+END OF REPORT
+================================================================================

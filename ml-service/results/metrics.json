@@ -1,0 +1,78 @@
+{
+  "timestamp": "2026-03-03T19:47:19.600420",
+  "metrics": {
+    "skills_classifier": {
+      "model": "Skills Classifier (TF-IDF + Random Forest)",
+      "total_samples": 500,
+      "successful": 500,
+      "failed": 0,
+      "success_rate": 100.0,
+      "execution_time": {
+        "total_seconds": 0.004,
+        "avg_seconds": 0.0,
+        "min_seconds": 0.0,
+        "max_seconds": 0.001,
+        "median_seconds": 0.0,
+        "stdev_seconds": 0.0001
+      }
+    },
+    "project_ranker": {
+      "model": "Project Ranker (Sentence Transformers)",
+      "total_samples": 300,
+      "successful": 300,
+      "failed": 0,
+      "success_rate": 100.0,
+      "execution_time": {
+        "total_seconds": 29.053,
+        "avg_seconds": 0.0968,
+        "min_seconds": 0.0246,
+        "max_seconds": 14.7451,
+        "median_seconds": 0.0472,
+        "stdev_seconds": 0.8487
+      },
+      "scores": {
+        "count": 300,
+        "mean": 0.215,
+        "median": 0.204,
+        "min": 0.04,
+        "max": 0.446,
+        "stdev": 0.083
+      }
+    },
+    "achievement_scorer": {
+      "model": "Achievement Scorer (Keyword Heuristics)",
+      "total_samples": 400,
+      "successful": 400,
+      "failed": 0,
+      "success_rate": 100.0,
+      "execution_time": {
+        "total_seconds": 0.021,
+        "avg_seconds": 0.0001,
+        "min_seconds": 0.0,
+        "max_seconds": 0.002,
+        "median_seconds": 0.0,
+        "stdev_seconds": 0.0003
+      },
+      "scores": {
+        "count": 2188,
+        "mean": 0.936,
+        "median": 1.0,
+        "min": 0.6,
+        "max": 1.0,
+        "stdev": 0.1
+      }
+    },
+    "ats_scorer": {
+      "model": "ATS Scorer (TF-IDF + Keyword Matching)",
+      "total_samples": 300,
+      "successful": 0,
+      "failed": 300,
+      "success_rate": 0.0
+    }
+  },
+  "statistics": {
+    "skills_classifier": {
+      "categorized_skills": 4942,
+      "uncategorized_skills": 0,
+      "total_skills": 4942,
+      "categories_used": 
