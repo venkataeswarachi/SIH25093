@@ -141,7 +141,10 @@ def train():
     texts = [t[0] for t in TRAINING_DATA]
     labels = [t[1] for t in TRAINING_DATA]
 
-    print(f"Training on {len(texts)} samples across {len(set(labels))} categories")
+    print(f"\n{'='*70}")
+    print(f"TRAINING SKILLS CLASSIFIER WITH METRICS")
+    print(f"{'='*70}")
+    print(f"Training on {len(texts)} samples across {len(set(labels))} categories\n")
 
     # TF-IDF vectorizer
     vectorizer = TfidfVectorizer(
@@ -159,18 +162,91 @@ def train():
         class_weight="balanced",
     )
 
-    # Cross-validation
+    # ---------------------------------------------------------------
+    # Cross-validation accuracy
+    # ---------------------------------------------------------------
     scores = cross_val_score(clf, X, labels, cv=5, scoring="accuracy")
     print(f"Cross-val accuracy: {scores.mean():.3f} ± {scores.std():.3f}")
 
-    # Train final model
-    clf.fit(X, labels)
+    # ---------------------------------------------------------------
+    # Train/test split for confusion matrix and detailed metrics
+    # ---------------------------------------------------------------
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import (
+        accuracy_score, precision_score, recall_score, f1_score,
+        confusion_matrix, classification_report
+    )
+    import numpy as np
 
-    # Save
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, labels, test_size=0.2, random_state=42, stratify=labels
+    )
+    clf.fit(X_train, y_train)
+    y_pred = clf.predict(X_test)
+
+    print("\nDetailed test-set evaluation:")
+    acc = accuracy_score(y_test, y_pred)
+    prec = precision_score(y_test, y_pred, average='weighted', zero_division=0)
+    rec = recall_score(y_test, y_pred, average='weighted', zero_division=0)
+    f1 = f1_score(y_test, y_pred, average='weighted', zero_division=0)
+    print(f"  Test accuracy  : {acc:.4f}")
+    print(f"  Test precision : {prec:.4f}")
+    print(f"  Test recall    : {rec:.4f}")
+    print(f"  Test f1-score  : {f1:.4f}\n")
+
+    # confusion matrix
+    cats = sorted(set(labels))
+    cm = confusion_matrix(y_test, y_pred, labels=cats)
+    print("Confusion matrix (rows=actual, cols=predicted):")
+    print(f"{'':25}", end="")
+    for c in cats:
+        print(f"{c[:15]:<17}", end="")
+    print()
+    for i, c in enumerate(cats):
+        print(f"{c:<25}", end="")
+        for j in range(len(cats)):
+            print(f"{cm[i,j]:<17}", end="")
+        print()
+    print()
+    print(classification_report(y_test, y_pred, digits=4))
+
+    # ---------------------------------------------------------------
+    # Save models and metrics
+    # ---------------------------------------------------------------
     os.makedirs("models", exist_ok=True)
     joblib.dump(clf, "models/skills_classifier.pkl")
     joblib.dump(vectorizer, "models/skills_vectorizer.pkl")
-    print("Models saved to models/")
+    print("Models saved to models/\n")
+
+    # persist metrics for sending/reporting
+    metrics = {
+        "cross_val_accuracy_mean": float(scores.mean()),
+        "cross_val_accuracy_std": float(scores.std()),
+        "test_accuracy": float(acc),
+        "test_precision": float(prec),
+        "test_recall": float(rec),
+        "test_f1": float(f1),
+        "confusion_matrix": cm.tolist(),
+        "categories": cats,
+        "train_size": int(X_train.shape[0]),
+        "test_size": int(X_test.shape[0])
+    }
+    with open("models/skills_metrics.json", "w") as mf:
+        import json
+        json.dump(metrics, mf, indent=2)
+    print("Metrics saved to models/skills_metrics.json\n")
+
+    # concise summary text for sharing
+    summary = (
+        f"Accuracy: {metrics['test_accuracy']:.3f}\n"
+        f"Precision: {metrics['test_precision']:.3f}\n"
+        f"Recall: {metrics['test_recall']:.3f}\n"
+        f"F1-Score: {metrics['test_f1']:.3f}\n"
+    )
+    with open("models/metrics_summary.txt", "w") as sf:
+        sf.write(summary)
+    print("Summary saved to models/metrics_summary.txt")
+    print(summary)
 
     # Quick test
     test_skills = ["react.js", "tensorflow", "docker", "public speaking", "mysql", "dart"]

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import api from '../../services/api';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { useAuth } from '../../auth/AuthContext';
 
 const ResumeGenerator = () => {
     const [resumeData, setResumeData] = useState(null);
@@ -10,7 +11,9 @@ const ResumeGenerator = () => {
     const [role, setRole] = useState("Full Stack Developer");
     const [mlResults, setMlResults] = useState(null);
     const resumeRef = useRef();
-
+    const { user } = useAuth();
+    console.log(user)
+    
     // ------------------ API Handlers ------------------
     const fetchResume = async () => {
         setLoading(true);
@@ -72,7 +75,7 @@ const ResumeGenerator = () => {
                                 🎯 Calculate ATS Score
                             </button>
                             <button style={uiStyles.mlBtn} onClick={() => callML("classify-skills")} disabled={mlLoading}>
-                                🔍 Skill Gap Analysis
+                                🔍 Skill Classifier
                             </button>
                             <button style={uiStyles.successBtn} onClick={handleDownloadPDF}>
                                 📥 Download A4 PDF
@@ -93,7 +96,7 @@ const ResumeGenerator = () => {
             <div style={uiStyles.previewArea}>
                 {!resumeData ? (
                     <div style={uiStyles.emptyState}>
-                        <h3>Welcome, Eswar!</h3>
+                        <h3>Welcome {user?.email || "Student"}!</h3>
                         <p>Generate your Resume based on Your Profile And Records.</p>
                     </div>
                 ) : (
