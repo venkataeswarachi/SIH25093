@@ -55,9 +55,7 @@ public class AdminServiceImpl implements AdminService {
             "lastname",
             "email",
             "department",
-            "year"
-    );
-
+            "year");
 
     private void validateHeaders(Row headerRow) {
 
@@ -73,8 +71,7 @@ public class AdminServiceImpl implements AdminService {
                 throw new RuntimeException(
                         "Invalid Excel format. Expected column '" +
                                 EXPECTED_HEADERS.get(i) +
-                                "' but found '" + actual + "'"
-                );
+                                "' but found '" + actual + "'");
             }
         }
     }
@@ -98,16 +95,20 @@ public class AdminServiceImpl implements AdminService {
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
 
                 Row row = sheet.getRow(i);
-                if (row == null) continue;
+                if (row == null)
+                    continue;
 
                 // ================= COMMON =================
                 Cell emailCell = row.getCell(3);
-                if (emailCell == null) continue;
+                if (emailCell == null)
+                    continue;
 
                 String email = emailCell.getStringCellValue().trim();
-                if (email.isEmpty()) continue;
+                if (email.isEmpty())
+                    continue;
 
-                if (userRepository.existsByEmail(email)) continue;
+                if (userRepository.existsByEmail(email))
+                    continue;
 
                 // ================= USERS TABLE =================
                 Users user = new Users();
@@ -128,11 +129,12 @@ public class AdminServiceImpl implements AdminService {
                 if ("FACULTY".equalsIgnoreCase(role)) {
 
                     String department = row.getCell(0).getStringCellValue().trim();
-                    String firstname  = row.getCell(1).getStringCellValue().trim();
-                    String lastname   = row.getCell(2).getStringCellValue().trim();
-                    String position   = row.getCell(4).getStringCellValue().trim();
+                    String firstname = row.getCell(1).getStringCellValue().trim();
+                    String lastname = row.getCell(2).getStringCellValue().trim();
+                    String position = row.getCell(4).getStringCellValue().trim();
 
-                    if (facultyRepository.existsByEmail(email)) continue;
+                    if (facultyRepository.existsByEmail(email))
+                        continue;
 
                     Faculty faculty = new Faculty();
                     faculty.setEmail(email);
@@ -140,7 +142,6 @@ public class AdminServiceImpl implements AdminService {
                     faculty.setLastname(lastname);
                     faculty.setBranch(department);
                     faculty.setPosition(position);
-
 
                     String username = generateUniqueUsername(firstname, lastname);
                     faculty.setUsername(username);
@@ -150,9 +151,9 @@ public class AdminServiceImpl implements AdminService {
 
                 else if ("STUDENT".equalsIgnoreCase(role)) {
 
-                    String rno       = row.getCell(0).getStringCellValue().trim();
+                    String rno = row.getCell(0).getStringCellValue().trim();
                     String firstname = row.getCell(1).getStringCellValue().trim();
-                    String lastname  = row.getCell(2).getStringCellValue().trim();
+                    String lastname = row.getCell(2).getStringCellValue().trim();
 
                     if (studentRepository.existsByEmail(email) ||
                             studentRepository.existsByRno(rno)) {
@@ -179,6 +180,7 @@ public class AdminServiceImpl implements AdminService {
 
         return ResponseEntity.ok(createdCount + " users uploaded successfully");
     }
+
     private String generateUniqueUsername(String firstName, String lastName) {
         String base = (firstName + "." + lastName)
                 .toLowerCase()
@@ -195,10 +197,12 @@ public class AdminServiceImpl implements AdminService {
     }
 
     private String getStringValue(Cell cell) {
-        if (cell == null) return null;
+        if (cell == null)
+            return null;
         cell.setCellType(CellType.STRING);
         return cell.getStringCellValue().trim();
     }
+
     @Override
     public ResponseEntity<String> uploadAcademics(MultipartFile file) {
 
@@ -213,33 +217,47 @@ public class AdminServiceImpl implements AdminService {
 
             for (Row row : sheet) {
 
-
                 if (row.getRowNum() == 0) {
-                    continue;
+                    continue; // skip header
+                }
+
+                String rno = getStringValue(row.getCell(0));
+
+                // ✅ Validate RNO first
+                if (rno == null || rno.trim().isEmpty()) {
+                    System.out.println("Skipping row " + row.getRowNum() + " because RNO is empty");
+                    continue; // Skip instead of crashing
+                }
+
+                Optional<Students> studentOpt = studentRepository.findByRno(rno);
+
+                if (studentOpt.isEmpty()) {
+                    throw new RuntimeException("Student not found for RNO: " + rno + " ROW " + row.getRowNum());
                 }
 
                 Academics academic = new Academics();
-                academic.setSrno(getStringValue(row.getCell(0)));
 
-                Optional<Students> studentOpt = studentRepository.findByRno(getStringValue(row.getCell(0)));
-
-                if (studentOpt.isEmpty()) {
-                    throw new RuntimeException("Student not found for RNO: " + getStringValue(row.getCell(0))+" ROW"+row.getRowNum());
-                }
-
-                Long sid = studentOpt.get().getSid();
-
-                academic.setSid(sid);
+                academic.setSrno(rno);
+                academic.setSid(studentOpt.get().getSid());
                 academic.setBranch(getStringValue(row.getCell(1)));
                 academic.setBatch(getStringValue(row.getCell(2)));
                 academic.setCourse(getStringValue(row.getCell(3)));
-                academic.setYear((int) row.getCell(4).getNumericCellValue());
-                academic.setSemester((int) row.getCell(5).getNumericCellValue());
+
+                // ✅ Safe numeric handling
+                academic.setYear(
+                        row.getCell(4) != null ? (int) row.getCell(4).getNumericCellValue() : 0);
+
+                academic.setSemester(
+                        row.getCell(5) != null ? (int) row.getCell(5).getNumericCellValue() : 0);
+
                 academic.setSection(getStringValue(row.getCell(6)));
                 academic.setType(getStringValue(row.getCell(7)));
-                academic.setAdmissiondate(
-                        row.getCell(8).getLocalDateTimeCellValue().toLocalDate()
-                );
+
+                if (row.getCell(8) != null) {
+                    academic.setAdmissiondate(
+                            row.getCell(8).getLocalDateTimeCellValue().toLocalDate());
+                }
+
                 academic.setStatus(getStringValue(row.getCell(9)));
 
                 academicList.add(academic);
@@ -257,8 +275,7 @@ public class AdminServiceImpl implements AdminService {
     @Transactional
     public int promoteStudents(String batch) {
 
-        List<Academics> students =
-                academicRepository.findByBatchAndStatus(batch, "ACTIVE");
+        List<Academics> students = academicRepository.findByBatchAndStatus(batch, "ACTIVE");
 
         int promotedCount = 0;
 
@@ -269,45 +286,41 @@ public class AdminServiceImpl implements AdminService {
             String srno = a.getSrno();
             Long sid = a.getSid();
 
-            //  Fetch SGPA for current semester
+            // Fetch SGPA for current semester
             Double sgpa = externalMarksRepository
                     .findSgpaBySrnoAndSemester(srno, currentSem);
-            System.out.println(sgpa+"line 208");
+            System.out.println(sgpa + "line 208");
             if (sgpa == null) {
                 throw new RuntimeException(
-                        "SGPA not found for SRNO " + srno + " semester " + currentSem
-                );
+                        "SGPA not found for SRNO " + srno + " semester " + currentSem);
             }
 
             // Fetch Marks record for current semester
             Marks marks = marksRepository
                     .findBySidAndSemester(sid, currentSem)
-                    .orElseThrow(() ->
-                            new RuntimeException("Marks not found for SID " + sid +
-                                    " semester " + currentSem));
+                    .orElseThrow(() -> new RuntimeException("Marks not found for SID " + sid +
+                            " semester " + currentSem));
 
-
-            //  Calculate CGPA
+            // Calculate CGPA
             int completedSemesters = currentSem; // assuming semester starts from 1
 
-            System.out.println("line224,225 : "+" "+completedSemesters);
+            System.out.println("line224,225 : " + " " + completedSemesters);
             double newCgpa;
             if (completedSemesters == 1) {
                 newCgpa = sgpa;
             } else {
                 Marks prevmarks = marksRepository
-                        .findBySidAndSemester(sid, currentSem-1)
-                        .orElseThrow(() ->
-                                new RuntimeException("Marks not found for SID " + sid +
-                                        " semester " + (currentSem-1)));
+                        .findBySidAndSemester(sid, currentSem - 1)
+                        .orElseThrow(() -> new RuntimeException("Marks not found for SID " + sid +
+                                " semester " + (currentSem - 1)));
                 double prevCgpa = prevmarks.getCgpa();
-                System.out.println("line 237 prev cgpa:"+prevCgpa+" sem"+prevmarks.getSemester() );
+                System.out.println("line 237 prev cgpa:" + prevCgpa + " sem" + prevmarks.getSemester());
                 newCgpa = ((prevCgpa * (completedSemesters - 1)) + sgpa)
                         / completedSemesters;
-                System.out.println("line 232: "+newCgpa);
+                System.out.println("line 232: " + newCgpa);
             }
 
-            //  Update CGPA
+            // Update CGPA
             marks.setCgpa(newCgpa);
             marksRepository.save(marks);
 
@@ -335,34 +348,32 @@ public class AdminServiceImpl implements AdminService {
         return promotedCount;
     }
 
-
     @Override
     public ResponseEntity<String> uploadDetainList(MultipartFile file) {
         if (file.isEmpty()) {
             return ResponseEntity.status(403).body("File is empty");
         }
-        int count =0;
-        try(Workbook workbook = new XSSFWorkbook(file.getInputStream())){
+        int count = 0;
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
             List<Academics> detainedList = new ArrayList<>();
-            for(Row row : sheet){
-                if(row.getRowNum() == 0) continue;
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0)
+                    continue;
                 String rno = getStringValue(row.getCell(0));
-                Academics academic = academicRepository.findBySrno(rno).orElseThrow(()->new RuntimeException("Record not found with roll no : "+rno));
+                Academics academic = academicRepository.findBySrno(rno)
+                        .orElseThrow(() -> new RuntimeException("Record not found with roll no : " + rno));
                 academic.setStatus("INACTIVE");
                 detainedList.add(academic);
                 count++;
             }
             academicRepository.saveAll(detainedList);
-            return ResponseEntity.ok("Updated detained list succesfully. Updated Records Count : "+count);
+            return ResponseEntity.ok("Updated detained list succesfully. Updated Records Count : " + count);
 
         } catch (RuntimeException | IOException e) {
             throw new RuntimeException(e);
         }
     }
-
-
-
 
     @Override
     public ResponseEntity<String> uploadInternalMarks(MultipartFile file) {
@@ -373,7 +384,8 @@ public class AdminServiceImpl implements AdminService {
 
             for (Row row : sheet) {
 
-                if (row.getRowNum() == 0) continue;
+                if (row.getRowNum() == 0)
+                    continue;
 
                 String rno = getStringValue(row.getCell(0));
                 int year = (int) row.getCell(1).getNumericCellValue();
@@ -396,7 +408,7 @@ public class AdminServiceImpl implements AdminService {
 
                 Long sid = academic.getSid();
 
-                //  Check if Marks already exists for semester
+                // Check if Marks already exists for semester
                 Marks marks = marksRepository
                         .findBySidAndSemester(sid, semester)
                         .orElseGet(() -> {
@@ -410,7 +422,6 @@ public class AdminServiceImpl implements AdminService {
 
                             return marksRepository.save(m);
                         });
-
 
                 InternalMarks internal = internalMarksRepository
                         .findByMarksAndSubjectName(marks, subject)
@@ -433,7 +444,6 @@ public class AdminServiceImpl implements AdminService {
                 marks.getInternalMarks().add(internal);
                 internal.setMarks(marks);
 
-
                 marksRepository.save(marks);
             }
 
@@ -451,14 +461,15 @@ public class AdminServiceImpl implements AdminService {
 
             for (Row row : sheet) {
 
-                if (row.getRowNum() == 0) continue;
+                if (row.getRowNum() == 0)
+                    continue;
 
                 String rno = getStringValue(row.getCell(0));
                 int year = (int) row.getCell(1).getNumericCellValue();
                 int semester = (int) row.getCell(2).getNumericCellValue();
                 String branch = getStringValue(row.getCell(3));
                 String subjectName = getStringValue(row.getCell(4));
-                int total = (int)row.getCell(5).getNumericCellValue();
+                int total = (int) row.getCell(5).getNumericCellValue();
                 String grade = getStringValue(row.getCell(6));
                 String finalGrade = getStringValue(row.getCell(7));
                 double sgpa = row.getCell(8).getNumericCellValue();
@@ -468,7 +479,7 @@ public class AdminServiceImpl implements AdminService {
 
                 Long sid = academic.getSid();
                 String srno = academic.getSrno();
-                //  Check if Marks already exists for semester
+                // Check if Marks already exists for semester
                 Marks marks = marksRepository
                         .findBySidAndSemester(sid, semester)
                         .orElseGet(() -> {
@@ -483,7 +494,7 @@ public class AdminServiceImpl implements AdminService {
                             return marksRepository.save(m);
                         });
                 ExternalMarks external = externalMarksRepository
-                        .findByMarksAndSubjectName(marks,subjectName)
+                        .findByMarksAndSubjectName(marks, subjectName)
                         .orElse(new ExternalMarks());
                 external.setSubject(subjectName);
                 external.setTotal(total);
@@ -503,6 +514,7 @@ public class AdminServiceImpl implements AdminService {
         }
         return ResponseEntity.ok("External Marks Released Successfully.");
     }
+
     @Transactional
     public ResponseEntity<String> uploadTimetable(
             String branch,
@@ -511,13 +523,11 @@ public class AdminServiceImpl implements AdminService {
             String section,
             String title,
             MultipartFile file,
-            String adminEmail
-    ) throws IOException {
+            String adminEmail) throws IOException {
 
         Files.createDirectories(Paths.get(DIR));
 
-        String storedFile =
-                UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String storedFile = UUID.randomUUID() + "_" + file.getOriginalFilename();
 
         Path path = Paths.get(DIR + storedFile);
         Files.copy(file.getInputStream(), path,
@@ -542,17 +552,18 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public ResponseEntity<String> enrollSemSubjects(MultipartFile file) {
-        if(file.isEmpty()) return ResponseEntity.status(403).body("File is Empty!");
-        try(Workbook workbook = new XSSFWorkbook(file.getInputStream())){
+        if (file.isEmpty())
+            return ResponseEntity.status(403).body("File is Empty!");
+        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
             Sheet sheet = workbook.getSheetAt(0);
-            for (Row row : sheet){
-                if(row.getRowNum()==0) {
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0) {
                     continue;
                 }
                 Subject subject = new Subject();
                 String batch = getStringValue(row.getCell(0));
                 String branch = getStringValue(row.getCell(1));
-                int year = (int)row.getCell(2).getNumericCellValue();
+                int year = (int) row.getCell(2).getNumericCellValue();
                 int semester = (int) row.getCell(3).getNumericCellValue();
                 String subjectname = getStringValue(row.getCell(4));
                 String subjectcode = getStringValue(row.getCell(5));
@@ -570,7 +581,7 @@ public class AdminServiceImpl implements AdminService {
                 subject.setCredits(credits);
                 subjectRepository.save(subject);
             }
-            return  ResponseEntity.ok("Enrollment sucessful");
+            return ResponseEntity.ok("Enrollment sucessful");
 
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -592,8 +603,4 @@ public class AdminServiceImpl implements AdminService {
         return academicRepository.countDistinctDepartments();
     }
 
-
 }
-
-
-
