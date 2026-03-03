@@ -1,4 +1,4 @@
-# SIH25093 — AI Resume Builder / University Platform
+# SIH25093 — University Platform
 
 This repository contains three main components:
 
@@ -61,6 +61,8 @@ cd University
 # configure src/main/resources/application.properties with DB credentials
 mvn spring-boot:run
 ```
+Backend Architecture
+![alt text](image.png)
 
 Repository layout (short)
 - `frontend/` — React UI: `src/` contains components, layouts, pages, services
