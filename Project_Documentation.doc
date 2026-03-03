@@ -1,0 +1,102 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0\fswiss Helvetica;}}
+\f0\fs24
+\b SIH25093 — Project Documentation\b0\par
+\par
+Table of Contents\par
+1. Project Overview\par
+2. Repository Structure\par
+3. Frontend\par
+4. ML Service (ml-service)\par
+5. University Backend (Spring Boot)\par
+6. How to Run the System\par
+7. Dependencies and Requirements\par
+8. Development Notes and Tips\par
+9. Contact / Authors\par
+\par
+\b 1. Project Overview\b0\par
+This repository is a combined project containing: a React + Vite frontend, a Java Spring Boot backend (University), and an ML microservice (FastAPI) providing AI-powered resume generation and scoring. The system is intended to collect student records, run ML/LLM pipelines to generate enhanced resumes, and provide admin and student UIs for interaction.\par
+\par
+\b 2. Repository Structure\b0\par
+- frontend/: React + Vite application (UI for students, faculty, admin).\par
+- ml-service/: FastAPI microservice for resume generation and ML scoring.\par
+- University/: Java Spring Boot backend (student records, auth, API).\par
+- timetables/, uploads/: data and artifacts used by the application.\par
+\par
+\b 3. Frontend\b0\par
+Stack: React 19, Vite, Axios. Key files:\par
+- Entry: src/main.jsx\par
+- Layouts: src/layout/ (AdminLayout, AuthLayout, MainLayout)\par
+- Pages: src/pages/ (admin, faculty, student, common)\par
+- Services: src/services/api.js — central API client using Axios\par
+\par
+NPM scripts (from package.json):\par
+- `dev`: `vite` — start dev server (hot reload)\par
+- `build`: `vite build` — build production bundle\par
+- `preview`: `vite preview` — preview production build\par
+\par
+Run locally:\par
+1. cd frontend\par
+2. npm install\par
+3. npm run dev\par
+\par
+Default dev port: Vite default (typically 5173). Configure API base URL in `src/services/api.js` to point to backend.\par
+\par
+\b 4. ML Service (ml-service)\b0\par
+Overview: FastAPI microservice exposing endpoints for resume generation and health checks. Provides `/generate-resume` (structured JSON request) and `/generate-resume-legacy` (legacy prompt-based). The app boots using Uvicorn.\par
+\par
+Key files:\par
+- `main.py`: FastAPI app and endpoints.\par
+- `config.py`: environment-driven configuration (HOST, PORT, model paths, LLM provider keys).\par
+- `requirements.txt`: lists Python dependencies (FastAPI, uvicorn, scikit-learn, sentence-transformers, numpy, httpx, python-dotenv, groq, google-generativeai, etc.).\par
+\par
+Important endpoints:\par
+- GET `/` — service info and active LLM provider\par
+- GET `/health` — health status\par
+- POST `/generate-resume` — primary endpoint (accepts `ResumeRequest` JSON model)\par
+\par
+Run locally:\par
+1. cd ml-service\par
+2. Create a `.env` with LLM keys and optional ML model path overrides (see `config.py` for variable names like `GROQ_API_KEY`, `GEMINI_API_KEY`, `ML_PORT`).\par
+3. python -m pip install -r requirements.txt\par
+4. python main.py\par
+(or) uvicorn main:app --host 0.0.0.0 --port 8000 --reload\par
+\par
+Default port: 8000 (configurable via `ML_PORT` env var).\par
+\par
+\b 5. University Backend (Spring Boot)\b0\par
+Overview: Java Spring Boot application providing core APIs and UI templates. Main entry: `UniversityApplication.java` (in `src/main/java/com/vvit/University`).\par
+\par
+Key info from `pom.xml`:\par
+- ArtifactId: University\par
+- Java version: 17\par
+- Notable dependencies: Spring Boot starters (webmvc, data-jpa, security), MySQL connector, jjwt for JWT tokens, Apache POI (poi-ooxml).\par
+\par
+Run locally (typical):\par
+1. Ensure JDK 17 installed.\par
+2. Configure `src/main/resources/application.properties` with DB connection and other secrets.\par
+3. mvn spring-boot:run\par
+\par
+\b 6. How to Run the System\b0\par
+Recommended local startup order for development:\par
+1. Start the University backend (Spring Boot) — ensures APIs and DB available.\par
+2. Start `ml-service` (FastAPI) on port 8000. Configure backend to call ML service endpoints if integrated.\par
+3. Start the frontend (`npm run dev`) and point API base to backend/ML endpoints.\par
+\par
+API integration notes:\par
+- The frontend uses `src/services/api.js` to call backend endpoints — update base URL there.\par
+- The University backend likely calls the ML service to generate resumes; ensure the ML service host:port matches `config.py` / `.env` settings.\par
+\par
+\b 7. Dependencies and Requirements\b0\par
+Frontend: Node.js + npm, Vite, React. See `frontend/package.json` for exact dependency versions.\par
+ML Service: Python 3.11+ recommended; see `ml-service/requirements.txt` for packages (FastAPI, uvicorn, scikit-learn, sentence-transformers, numpy, python-dotenv, groq, google-generativeai, etc.).\par
+Backend: Java 17, Maven, MySQL (or configured DB). See `University/pom.xml` for dependencies.\par
+\par
+\b 8. Development Notes and Tips\b0\par
+- Machine learning models (skill classifier, vectorizers) are expected under `ml-service/models/` as configurable in `config.py`. If missing, training scripts are in `ml-service/training/` (`train_skills_model.py`) to create the necessary artifacts.\par
+- Use environment variables (in `.env`) to provide LLM API keys (GROQ_API_KEY, GEMINI_API_KEY) and override model paths.\par
+- The ML service includes both ML models (scikit-learn) and LLM integrations; check `templates/prompts.py` for LLM prompt templates.\par
+\par
+\b 9. Contact / Authors\b0\par
+Repository: SIH25093 — combined project for AI Resume Builder and University digital platform. For issues or questions, open an issue in the repository.\par
+}
