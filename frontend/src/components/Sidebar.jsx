@@ -19,6 +19,7 @@ const Sidebar = () => {
             { to: '/student/timetable', label: 'Time Table' },
             { to: '/student/generate-resume', label: 'Generate Resume' },
             { to: '/student/projects', label: 'My Projects' },
+            { to: '/student/ml-tools', label: 'ML Tools' },
         ],
         FACULTY: [
             { to: '/faculty/dashboard', label: 'Dashboard' },

@@ -18,6 +18,7 @@ import EnrolledSubjects from './pages/student/EnrolledSubjects';
 import StudentTimeTable from './pages/student/StudentTimeTable';
 import MyDocuments from './pages/student/MyDocuments';
 import ResumeGenerator from './pages/student/ResumeGenerator';
+import MLTools from './pages/student/MLTools';
 import StudentProjects from './pages/student/StudentProjects';
 // Faculty Pages
 import FacultyDashboard from './pages/faculty/Dashboard';
@@ -72,6 +73,7 @@ function App() {
         <Route path="/student/timetable" element={<StudentTimeTable />} />
         <Route path="/student/generate-resume" element={<ResumeGenerator/>}/>
         <Route path="/student/projects" element={<StudentProjects/>}/>
+        
       </Route>
 
       {/* Faculty Routes */}

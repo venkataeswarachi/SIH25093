@@ -72,6 +72,41 @@ public class MlServiceImpl implements MLService {
         return response;
     }
 
+    // -----------------------------------------------------------------------
+    // wrappers for newly added ml-service features
+    // -----------------------------------------------------------------------
+
+    @Override
+    public Object classifySkillsFromDB(String email) {
+
+        ResumeDTO dto = buildResumeDTO(email);
+        ResumeMLRequest mlRequest = buildMLRequest(dto);
+
+        return mlClient.postForObject("/classify-skills", mlRequest);
+    }
+
+    @Override
+    public Object rankProjectsFromDB(String email, String role) {
+
+        ResumeDTO dto = buildResumeDTO(email);
+        ResumeMLRequest mlRequest = buildMLRequest(dto);
+        mlRequest.setTarget_role(role);
+
+        return mlClient.postForObject("/rank-projects", mlRequest);
+    }
+
+    @Override
+    public Map<String, Object> atsScoreFromDB(String email, String role) {
+
+        ResumeDTO dto = buildResumeDTO(email);
+        ResumeMLRequest mlRequest = buildMLRequest(dto);
+        mlRequest.setTarget_role(role);
+
+        return mlClient.postForMap("/ats-score", mlRequest);
+    }
+
+
+
     private ResumeMLRequest buildMLRequest(ResumeDTO dto) {
 
         ResumeMLRequest request = new ResumeMLRequest();

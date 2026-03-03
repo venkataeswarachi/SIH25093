@@ -59,6 +59,9 @@ mvn spring-boot:run
 
 ## 3. Component: Frontend (detailed)
 
+A new student page `ML Tools` provides forms to call the backend ML APIs for quick testing or exploration. It appears in the sidebar for all student users alongside the existing `Generate Resume` link.
+
+
 **Location:** `frontend/`
 
 **Stack:** React 19, Vite, Axios. ESLint config present. Project entry: `src/main.jsx` mounts `App` inside an `AuthProvider` and `BrowserRouter` for routing and auth context.
@@ -79,7 +82,7 @@ mvn spring-boot:run
 
 **Location:** `ml-service/`
 
-Overview: FastAPI application that orchestrates several internal services to produce a feature-rich resume payload. It blends ML models (skills classifier, project ranker, ATS scorer) with LLM calls (Groq → Gemini) and template fallbacks.
+Overview: FastAPI application that orchestrates several internal services to produce a feature-rich resume payload. It blends ML models (skills classifier, project ranker, ATS scorer) with LLM calls (Groq → Gemini) and template fallbacks. A companion Streamlit dashboard (`streamlit_app.py`) provides an interactive UI for exercising each service without writing code; see Section 10 for how to launch it.
 
 **Important modules and behavior:**
 - `main.py`: FastAPI app. Defines Pydantic models and endpoints: `/`, `/health`, `/generate-resume`, `/generate-resume-legacy`.
@@ -120,6 +123,22 @@ This Spring Boot application holds core business logic and persistence.
 - The backend exposes REST endpoints consumed by the React frontend; it may call the ML service at `http://<ml-host>:<ml-port>/generate-resume`.
 
 ## 6. File-by-file Reference (selected important files)
+
+### Backend ML API endpoints
+The University backend exposes the following paths under `/api/ml` (all POST except where noted):
+
+```
+/api/ml/classify-skills
+/api/ml/rank-projects
+/api/ml/score-achievements
+/api/ml/ats-score
+/api/ml/summary
+/api/ml/enhance-project
+/api/ml/enhance-achievement
+```
+
+These correspond directly to the ml-service endpoints described in Section 4 and are consumed by the frontend's ML Tools page.
+
 
 Concise descriptions of key files (use this section to quickly understand responsibilities):
 
@@ -191,6 +210,12 @@ I can perform next steps on request:
 - Convert this Markdown into `.docx` and add to the repo.
 - Add `ml-service/.env.example` and `University/application.properties.example` to the repo.
 - Generate example API payloads and Postman collection for the endpoints.
+- Use the included Streamlit playground (`ml-service/streamlit_app.py`) to interactively test every ML service. Run with:
+  ```bash
+  cd ml-service
+  pip install streamlit  # ensure dependencies from requirements.txt are installed
+  streamlit run streamlit_app.py
+  ```
 
 ---
 
