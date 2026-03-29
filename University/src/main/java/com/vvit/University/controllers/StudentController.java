@@ -60,14 +60,14 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getDocumentMetadata(authentication.getName()));
     }
     @GetMapping("document/{id}/view")
-    public ResponseEntity<Resource> viewDocument(
+    public ResponseEntity<?> viewDocument(
             @PathVariable Long id,
             Authentication authentication
     ) throws IOException {
         return studentService.viewDocument(id, authentication.getName());
     }
     @GetMapping("/schedule/view")
-    public ResponseEntity<Resource> viewForStudent(
+    public ResponseEntity<?> viewForStudent(
             @RequestParam String branch,
             @RequestParam int year,
             @RequestParam int semester,
@@ -119,7 +119,7 @@ public class StudentController {
 
     // 🖼 View Achievement Image (inline)
     @GetMapping("/achievement/view/{id}")
-    public ResponseEntity<Resource> viewAchievement(
+    public ResponseEntity<?> viewAchievement(
             @PathVariable Long id
     ) throws IOException {
 

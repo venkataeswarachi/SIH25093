@@ -1,7 +1,6 @@
 package com.vvit.University.models;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,23 +11,31 @@ public class TimeTable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long timetableId;
 
+    @Column(nullable = false)
     private String branch;
+
+    @Column(nullable = false)
     private int year;
+
     private int semester;
-    private String section; // nullable
+
+    private String section;
 
     private String title;
 
     private String originalFilename;
     private String storedFilename;
+
+    @Column(length = 1000)
     private String filePath;
+
     private String contentType;
 
     private String uploadedBy;
+
     private LocalDateTime uploadedAt = LocalDateTime.now();
 
-    public TimeTable() {
-    }
+    public TimeTable() {}
 
     public TimeTable(Long timetableId, String branch, int year, int semester, String section, String title, String originalFilename, String storedFilename, String filePath, String contentType, String uploadedBy, LocalDateTime uploadedAt) {
         this.timetableId = timetableId;
@@ -140,5 +147,5 @@ public class TimeTable {
     public void setUploadedAt(LocalDateTime uploadedAt) {
         this.uploadedAt = uploadedAt;
     }
+    // getters & setters (same as yours)
 }
-

@@ -24,6 +24,6 @@ public interface AchievementService {
 
     List<AchievementDTO> getStudentAchievements(String email);
 
-    ResponseEntity<Resource> viewAchievement(Long achievementId)
+    ResponseEntity<?> viewAchievement(Long achievementId)
             throws IOException;
 }

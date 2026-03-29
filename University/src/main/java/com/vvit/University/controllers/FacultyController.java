@@ -75,7 +75,7 @@ public class FacultyController {
 
     // 🖼 View Achievement Image (inline)
     @GetMapping("/achievement/view/{id}")
-    public ResponseEntity<Resource> viewAchievement(
+    public ResponseEntity<?> viewAchievement(
             @PathVariable Long id
     ) throws IOException {
 

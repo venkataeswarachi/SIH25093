@@ -1,43 +1,34 @@
 package com.vvit.University.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "notices")
 public class Notices {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long noticeId;
 
     private String title;
+
+    @Column(length = 2000)
     private String description;
 
-    private String fileName;        // original
-    private String storedFileName;  // uuid_image.png
-    private String filePath;        // notices/uuid.png
-    private String contentType;     // image/png
+    private String fileName;
+    private String storedFileName;
 
-    private String postedBy;        // admin email
+    @Column(length = 1000)
+    private String filePath;
+
+    private String contentType;
+
+    private String postedBy;
+
     private LocalDateTime postedAt = LocalDateTime.now();
 
-    public Notices() {
-    }
-
-    public Notices(Long noticeId, String title, String description, String fileName, String storedFileName, String filePath, String contentType, String postedBy, LocalDateTime postedAt) {
-        this.noticeId = noticeId;
-        this.title = title;
-        this.description = description;
-        this.fileName = fileName;
-        this.storedFileName = storedFileName;
-        this.filePath = filePath;
-        this.contentType = contentType;
-        this.postedBy = postedBy;
-        this.postedAt = postedAt;
-    }
+    public Notices() {}
 
     public Long getNoticeId() {
         return noticeId;
@@ -110,4 +101,5 @@ public class Notices {
     public void setPostedAt(LocalDateTime postedAt) {
         this.postedAt = postedAt;
     }
+    // getters & setters (same as yours)
 }

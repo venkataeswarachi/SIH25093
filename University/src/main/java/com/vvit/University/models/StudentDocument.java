@@ -1,7 +1,6 @@
 package com.vvit.University.models;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,6 +11,7 @@ public class StudentDocument {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long documentId;
 
+    @Column(nullable = false)
     private String srno;
 
     private String documentType;
@@ -19,6 +19,8 @@ public class StudentDocument {
 
     private String originalFilename;
     private String storedFilename;
+
+    @Column(length = 1000)
     private String filePath;
 
     private String contentType;
@@ -26,8 +28,7 @@ public class StudentDocument {
 
     private LocalDateTime uploadedAt = LocalDateTime.now();
 
-    public StudentDocument() {
-    }
+    public StudentDocument() {}
 
     public StudentDocument(Long documentId, String srno, String documentType, String title, String originalFilename, String storedFilename, String filePath, String contentType, Long fileSize, LocalDateTime uploadedAt) {
         this.documentId = documentId;
@@ -121,5 +122,5 @@ public class StudentDocument {
     public void setUploadedAt(LocalDateTime uploadedAt) {
         this.uploadedAt = uploadedAt;
     }
+    // getters & setters (same as yours)
 }
-

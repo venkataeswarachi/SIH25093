@@ -4,32 +4,41 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "achievements")
 public class Achievements {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long achievementId;
 
+    @Column(nullable = false)
     private String title;
 
-    private String category; // INTERNSHIP, HACKATHON, OPEN_SOURCE, etc.
+    private String category; // INTERNSHIP, HACKATHON, etc.
 
     @Column(length = 2000)
     private String description;
 
-    private String fileName;        // original image name
-    private String storedFileName;  // UUID file name
+    private String fileName;
+    private String storedFileName;
+
+    @Column(length = 1000) // 🔥 IMPORTANT
     private String filePath;
+
     private String contentType;
 
+    @Column(nullable = false)
     private String studentEmail;
+
     private String srno;
+
     private LocalDateTime postedAt = LocalDateTime.now();
 
-    public Achievements() {
-    }
+    public Achievements() {}
 
-    public Achievements(Long achievementId, String title, String category, String description, String fileName, String storedFileName, String filePath, String contentType, String studentEmail, LocalDateTime postedAt,String srno) {
+    public Achievements(Long achievementId, String title, String category, String description,
+                        String fileName, String storedFileName, String filePath,
+                        String contentType, String studentEmail, LocalDateTime postedAt, String srno) {
         this.achievementId = achievementId;
         this.title = title;
         this.category = category;
@@ -37,10 +46,10 @@ public class Achievements {
         this.fileName = fileName;
         this.storedFileName = storedFileName;
         this.filePath = filePath;
-        this.srno = srno;
         this.contentType = contentType;
         this.studentEmail = studentEmail;
         this.postedAt = postedAt;
+        this.srno = srno;
     }
 
     public Long getAchievementId() {
@@ -115,14 +124,6 @@ public class Achievements {
         this.studentEmail = studentEmail;
     }
 
-    public LocalDateTime getPostedAt() {
-        return postedAt;
-    }
-
-    public void setPostedAt(LocalDateTime postedAt) {
-        this.postedAt = postedAt;
-    }
-
     public String getSrno() {
         return srno;
     }
@@ -130,4 +131,13 @@ public class Achievements {
     public void setSrno(String srno) {
         this.srno = srno;
     }
+
+    public LocalDateTime getPostedAt() {
+        return postedAt;
+    }
+
+    public void setPostedAt(LocalDateTime postedAt) {
+        this.postedAt = postedAt;
+    }
+    // getters & setters (same as yours)
 }

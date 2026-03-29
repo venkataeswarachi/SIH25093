@@ -31,6 +31,9 @@ public class Students {
     private String portfolio;
     private boolean verfied;
     private String verfiedBy;
+    @ElementCollection
+    @CollectionTable(name = "student_skills", joinColumns = @JoinColumn(name = "student_id"))
+    @Column(name = "skill")
     private List<String> skills;
     public Students() {
     }
