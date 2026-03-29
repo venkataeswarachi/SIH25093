@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: import.meta.env.BASE_URL || 'http://127.0.0.1:2008',
+    baseURL: import.meta.env.VITE_BASE_URL || 'http://127.0.0.1:2008',
     headers: {
         'Content-Type': 'application/json',
     },
