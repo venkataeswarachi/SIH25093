@@ -1,9 +1,9 @@
 // src/services/api.js
 import axios from 'axios';
-
+import dotenv from 'dotenv';
 const api = axios.create({
     // Using 127.0.0.1 instead of localhost avoids IPv6 (::1) resolution issues
-    baseURL: 'http://127.0.0.1:2008', 
+    baseURL: process.env.BASE_URL || 'http://127.0.0.1:2008',
     headers: {
         'Content-Type': 'application/json',
     },
