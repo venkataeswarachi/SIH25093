@@ -39,8 +39,17 @@ public class JwtFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+        if (
+                path.startsWith("/auth") ||
+                        path.startsWith("/api/auth") ||
+                        path.equals("/login")
+        ) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         String header = request.getHeader("Authorization");
-
+        String authHeader = request.getHeader("Authorization");
+        System.out.println("TOKEN HEADER: " + authHeader);
         if(header!=null && header.startsWith("Bearer ")){
             String token = header.substring(7);
             Claims claims = jwtUtil.extractClaims(token);
