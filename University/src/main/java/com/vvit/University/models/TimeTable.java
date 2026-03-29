@@ -33,6 +33,7 @@ public class TimeTable {
 
     private String uploadedBy;
 
+    @Column(columnDefinition = "DATETIME")
     private LocalDateTime uploadedAt = LocalDateTime.now();
 
     public TimeTable() {}

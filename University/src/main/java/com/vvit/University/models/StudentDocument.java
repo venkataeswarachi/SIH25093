@@ -26,6 +26,7 @@ public class StudentDocument {
     private String contentType;
     private Long fileSize;
 
+    @Column(columnDefinition = "DATETIME")
     private LocalDateTime uploadedAt = LocalDateTime.now();
 
     public StudentDocument() {}

@@ -26,6 +26,7 @@ public class Notices {
 
     private String postedBy;
 
+    @Column(columnDefinition = "DATETIME")
     private LocalDateTime postedAt = LocalDateTime.now();
 
     public Notices() {}

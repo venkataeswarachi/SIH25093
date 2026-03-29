@@ -32,6 +32,7 @@ public class Achievements {
 
     private String srno;
 
+    @Column(columnDefinition = "DATETIME")
     private LocalDateTime postedAt = LocalDateTime.now();
 
     public Achievements() {}

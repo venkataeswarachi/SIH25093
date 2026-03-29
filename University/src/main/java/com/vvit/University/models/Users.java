@@ -17,6 +17,7 @@ public class Users {
     private String email;
     private String password;
     private String role;
+    @Column(columnDefinition = "DATETIME")
     private LocalDate createdAt;
     private boolean firstlogin;
 

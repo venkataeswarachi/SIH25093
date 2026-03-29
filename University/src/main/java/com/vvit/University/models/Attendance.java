@@ -23,7 +23,8 @@ public class Attendance {
     private String subjectCode;
     private String facultyEmail;
     private String subjectname;
-    private LocalDate date;
+    @Column(columnDefinition = "DATETIME")
+    private LocalDate date = LocalDate.now();
     private int period;
 
     private int year;
