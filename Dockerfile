@@ -2,8 +2,11 @@
 FROM maven:3.8.3-openjdk-17 AS build
 
 WORKDIR /app
-COPY . .
 
+# Copy only backend project
+COPY University /app
+
+# Now pom.xml is directly inside /app
 RUN mvn clean package
 
 # Package stage
